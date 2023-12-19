@@ -106,7 +106,7 @@
         const username = document.getElementById('username').value;
 
         // Fetch user data from the API
-        fetch(`https://www.mediawiki.org/w/api.php?action=query&format=json&list=&meta=globaluserinfo&utf8=1&formatversion=2&guiuser=${username}&guiprop=editcount%7Crights%7Cmerged%7Cgroups%7Cunattached`)
+        fetch(`https://www.mediawiki.org/w/api.php?action=query&format=json&list=&meta=globaluserinfo&utf8=1&formatversion=2&guiuser=${username}&guiprop=editcount%7Crights%7Cmerged%7Cgroups%7Cunattached`)fetch(`https://www.mediawiki.org/w/api.php?action=query&format=json&list=&meta=globaluserinfo&utf8=1&formatversion=2&guiuser=${username}&guiprop=editcount%7Crights%7Cmerged%7Cgroups%7Cunattached`)
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
