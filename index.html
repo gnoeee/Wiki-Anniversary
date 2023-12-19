@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wiki User Details</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f9fa;
+            color: #343a40;
+            overflow-x: hidden; /* Prevent horizontal scrollbar */
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            padding: 1em;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        main {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            animation: fadeIn 0.5s ease-in-out; /* Fade-in animation */
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        label {
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+
+        input {
+            padding: 10px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            border: 1px solid #ced4da;
+            border-radius: 5px;
+        }
+
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        #userDetails {
+            margin-top: 20px;
+            animation: fadeIn 0.5s ease-in-out; /* Fade-in animation */
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Wiki User Details</h1>
+</header>
+
+<main>
+    <div id="usernameInput" style="display: none;">
+        <form id="userForm">
+            <label for="username">Enter Username:</label>
+            <input type="text" id="username" name="username" placeholder="Username" required>
+
+            <button type="button" onclick="getUserDetails()">Get User Details</button>
+        </form>
+    </div>
+
+    <div id="userDetails"></div>
+</main>
+
+<script>
+    // Function to show the username input after 2 seconds
+    setTimeout(function() {
+        document.getElementById('usernameInput').style.display = 'block';
+    }, 2000);
+
+    function getUserDetails() {
+        const username = document.getElementById('username').value;
+
+        // Fetch user data from the API
+        fetch(`https://www.mediawiki.org/w/api.php?action=query&format=json&list=&meta=globaluserinfo&utf8=1&formatversion=2&guiuser=${username}&guiprop=editcount%7Crights%7Cmerged%7Cgroups%7Cunattached`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                displayUserDetails(data.query.globaluserinfo);
+            })
+            .catch(error => {
+                console.error('Error fetching user data:', error);
+            });
+    }
+
+    function displayUserDetails(user) {
+        // Display the user details
+        const userDetailsDiv = document.getElementById('userDetails');
+        userDetailsDiv.innerHTML = '';
+
+        if (user.name) {
+            userDetailsDiv.innerHTML += `<h2>${user.name}</h2>`;
+            userDetailsDiv.innerHTML += `<p>Registration Date: ${user.registration}</p>`;
+            userDetailsDiv.innerHTML += `<p>Edit Count: ${user.editcount}</p>`;
+            userDetailsDiv.innerHTML += `<p>Home Wiki: ${user.home}</p>`;
+            userDetailsDiv.innerHTML += `<p>ID: ${user.id}</p>`;
+
+            // Display groups and rights if available
+            if (user.groups.length > 0) {
+                userDetailsDiv.innerHTML += `<p>Groups: ${user.groups.join(', ')}</p>`;
+            }
+
+            if (user.rights.length > 0) {
+                userDetailsDiv.innerHTML += `<p>Rights: ${user.rights.join(', ')}</p>`;
+            }
+
+            userDetailsDiv.innerHTML += `<p>Merged: ${user.merged}</p>`;
+        } else {
+            userDetailsDiv.innerHTML += '<p>User not found. Please check the username and try again.</p>';
+        }
+    }
+</script>
+
+</body>
+</html>
