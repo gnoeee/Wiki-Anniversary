@@ -11,6 +11,7 @@
             padding: 0;
             background-color: #f8f9fa;
             color: #343a40;
+            text-align: center;
             overflow-x: hidden; /* Prevent horizontal scrollbar */
         }
 
@@ -21,7 +22,17 @@
             text-align: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
+        
+        .columns {
+            display: flex;
+            width: 100%;
+        }
 
+        .column {
+            flex: 1;
+            padding: 10px;
+        }
+        
         main {
             max-width: 600px;
             margin: 20px auto;
@@ -46,7 +57,7 @@
         input {
             padding: 10px;
             margin-bottom: 20px;
-            width: 100%;
+            width: 60%;
             box-sizing: border-box;
             border: 1px solid #ced4da;
             border-radius: 5px;
@@ -69,12 +80,35 @@
         #userDetails {
             margin-top: 20px;
             animation: fadeIn 0.5s ease-in-out; /* Fade-in animation */
+            display: flex;
+            flex-wrap: wrap;
+            text-align: center;
+        }
+		
+        #userDetails h2 {
+            color: #007bff;
+			text-align: center;
+            margin-bottom: 10px;
+        }
+
+        #userDetails p {
+            margin: 8px 0;
+            
+        }
+
+        #daysToAnniversary {
+            text-align: center;
+            font-weight: bold;
+            margin-top: 20px;
+            font-size: 20px;
+			margin-bottom: 20px;
         }
 
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
     </style>
 </head>
 <body>
@@ -87,26 +121,42 @@
     <div id="usernameInput" style="display: none;">
         <form id="userForm">
             <label for="username">Enter Username:</label>
-            <input type="text" id="username" name="username" placeholder="Username" required>
-
+            <input type="text" id="username" name="username" placeholder="Wiki Username" required onkeypress="handleKeyPress(event)">
             <button type="button" onclick="getUserDetails()">Get User Details</button>
         </form>
     </div>
-
-    <div id="userDetails"></div>
+    
+    <div class="header" id="usernameHeader"></div>
+    <div id="userDetails" class="columns"></div>
+    <div id="daysToAnniversary"></div>
+    
 </main>
 
 <script>
-    // Function to show the username input after 2 seconds
-    setTimeout(function() {
+    setTimeout(function () {
         document.getElementById('usernameInput').style.display = 'block';
+
+        // Check if the URL contains the username parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const usernameFromURL = urlParams.get('username');
+
+        if (usernameFromURL) {
+            // Set the username in the input field
+            document.getElementById('username').value = usernameFromURL;
+
+            // Trigger the user details retrieval
+            getUserDetails();
+        }
     }, 2000);
 
     function getUserDetails() {
         const username = document.getElementById('username').value;
 
-        // Fetch user data from the API
-        fetch(`https://www.mediawiki.org/w/api.php?action=query&format=json&list=&meta=globaluserinfo&utf8=1&formatversion=2&guiuser=${username}&guiprop=editcount%7Crights%7Cmerged%7Cgroups%7Cunattached`)fetch(`https://www.mediawiki.org/w/api.php?action=query&format=json&list=&meta=globaluserinfo&utf8=1&formatversion=2&guiuser=${username}&guiprop=editcount%7Crights%7Cmerged%7Cgroups%7Cunattached`)
+        fetch(`https://www.mediawiki.org/w/api.php?action=query&format=json&list=&meta=globaluserinfo&utf8=1&formatversion=2&guiuser=${username}&guiprop=editcount|rights|merged|groups|unattached&origin=*`, {
+            method: 'GET',
+            mode: 'cors',
+            jsonp: 'callback',
+        })
             .then(response => {
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
@@ -115,36 +165,123 @@
             })
             .then(data => {
                 displayUserDetails(data.query.globaluserinfo);
+                displayDaysToAnniversary(data.query.globaluserinfo.registration);
+                showButtons(); // Show the additional buttons
             })
             .catch(error => {
                 console.error('Error fetching user data:', error);
             });
     }
 
-    function displayUserDetails(user) {
-        // Display the user details
-        const userDetailsDiv = document.getElementById('userDetails');
-        userDetailsDiv.innerHTML = '';
 
-        if (user.name) {
-            userDetailsDiv.innerHTML += `<h2>${user.name}</h2>`;
-            userDetailsDiv.innerHTML += `<p>Registration Date: ${user.registration}</p>`;
-            userDetailsDiv.innerHTML += `<p>Edit Count: ${user.editcount}</p>`;
-            userDetailsDiv.innerHTML += `<p>Home Wiki: ${user.home}</p>`;
-            userDetailsDiv.innerHTML += `<p>ID: ${user.id}</p>`;
+function displayUserDetails(user) {
+    const userDetailsDiv = document.getElementById('userDetails');
+    const usernameHeader = document.getElementById('usernameHeader');
+    const daysToAnniversaryDiv = document.getElementById('daysToAnniversary');
 
-            // Display groups and rights if available
-            if (user.groups.length > 0) {
-                userDetailsDiv.innerHTML += `<p>Groups: ${user.groups.join(', ')}</p>`;
+    userDetailsDiv.innerHTML = '';
+    usernameHeader.innerHTML = '';
+    daysToAnniversaryDiv.innerHTML = '';
+
+    if (user.name) {
+        usernameHeader.innerHTML = `<h2>${user.name}</h2>`;
+
+        const registrationDate = new Date(user.registration);
+        const formattedDate = registrationDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        const leftColumn = document.createElement('div');
+        leftColumn.classList.add('column');
+        leftColumn.innerHTML = `<p><strong>Registration Date:</strong></p>
+                                <p>${formattedDate}</p>
+                                <p><strong>Edit Count:</strong></p>
+                                <p>${user.editcount}</p>`;
+
+        if (user.groups.length > 0) {
+            leftColumn.innerHTML += `<p><strong>Groups:</strong></p><p> ${user.groups.join(', ')}</p>`;
+        }
+
+        const rightColumn = document.createElement('div');
+        rightColumn.classList.add('column');
+        rightColumn.innerHTML = `<p><strong>Home Wiki:</strong></p>
+                                <p>${user.home}</p>
+                                <p><strong>ID:</strong></p>
+                                <p>${user.id}</p>`;
+
+        if (user.rights.length > 0) {
+            rightColumn.innerHTML += `<p><strong>Rights:</strong></p><p> ${user.rights.join(', ')}</p>`;
+        }
+
+        userDetailsDiv.appendChild(leftColumn);
+        userDetailsDiv.appendChild(rightColumn);
+
+        // Call displayDaysToAnniversary with the user's registration date
+        displayDaysToAnniversary(user.registration, daysToAnniversaryDiv);
+    } else {
+        usernameHeader.innerHTML = `<h2 style="color: red;">User not found: ${document.getElementById('username').value}</h2>`;
+        daysToAnniversaryDiv.innerHTML = '';
+    }
+}
+
+function displayDaysToAnniversary(registrationDate, daysToAnniversaryDiv) {
+    const anniversaryDate = new Date(registrationDate);
+    const today = new Date();
+
+    // Set the anniversary date to the current year
+    anniversaryDate.setFullYear(today.getFullYear());
+
+    // If today is the anniversary day, set it to next year
+    if (today >= anniversaryDate) {
+        anniversaryDate.setFullYear(today.getFullYear() + 1);
+    }
+
+    // Calculate the difference in days between the current date and the anniversary date
+    const daysToAnniversary = Math.ceil((anniversaryDate - today) / (1000 * 60 * 60 * 24));
+
+    // Display the number of days to the next anniversary
+    daysToAnniversaryDiv.innerHTML = `<strong>Days to next Anniversary:</strong> ${daysToAnniversary}`;
+
+    // Check if today is the anniversary day
+    if (daysToAnniversary === 0) {
+        showAnniversaryNotification();
+    }
+}
+
+    function showButtons() {
+        // Show the additional buttons
+        document.getElementById('wishAnniversaryButton').style.display = 'inline-block';
+    }
+
+
+    function handleKeyPress(event) {
+        if (event.key === 'Enter') {
+            getUserDetails();
+        }
+    }
+
+    function showAnniversaryNotification() {
+        // Check if the browser supports notifications
+        if ('Notification' in window) {
+            // Check if the user has granted permission for notifications
+            if (Notification.permission === 'granted') {
+                // Create and show the notification
+                const username = document.getElementById('username').value;
+                const notificationOptions = {
+                    body: `${username}'s anniversary is today! 🎉`,
+                };
+
+                const anniversaryNotification = new Notification('Anniversary Reminder', notificationOptions);
+            } else if (Notification.permission !== 'denied') {
+                // Request permission from the user
+                Notification.requestPermission().then(permission => {
+                    if (permission === 'granted') {
+                        showAnniversaryNotification();
+                    }
+                });
             }
-
-            if (user.rights.length > 0) {
-                userDetailsDiv.innerHTML += `<p>Rights: ${user.rights.join(', ')}</p>`;
-            }
-
-            userDetailsDiv.innerHTML += `<p>Merged: ${user.merged}</p>`;
-        } else {
-            userDetailsDiv.innerHTML += '<p>User not found. Please check the username and try again.</p>';
         }
     }
 </script>
