@@ -324,7 +324,7 @@ function handleKeyPress(event) {
 
 function showAnniversaryNotification(daysToAnniversary) {
     // Check if the browser supports notifications
-    if ('Notification' in window) {
+    if ('Notification' in window && 'serviceWorker' in navigator && 'PushManager' in window) {
         Notification.requestPermission().then(permission => {
             if (permission === 'granted') {
                 const username = document.getElementById('username').value;
