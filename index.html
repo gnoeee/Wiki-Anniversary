@@ -344,6 +344,11 @@ function showAnniversaryNotification(daysToAnniversary) {
                     notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
                 }
 
+                const notificationOptions = {
+                    body: notificationMessage,
+                };
+
+                const notification = new Notification('Anniversary Reminder', notificationOptions);
 
                 // Add an event listener to handle the click on the notification
                 notification.addEventListener('click', () => {
