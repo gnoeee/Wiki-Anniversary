@@ -76,6 +76,20 @@
         button:hover {
             background-color: #0056b3;
         }
+        
+        #wishAnniversaryButton {
+    		background-color: #007bff;
+    		color: white;
+    		padding: 10px 20px;
+    		border: none;
+    		cursor: pointer;
+    		border-radius: 5px;
+    		transition: background-color 0.3s ease
+		}
+
+		#wishAnniversaryButton:hover {
+    		background-color: #0056b3;
+		}
 
         #userDetails {
             margin-top: 20px;
@@ -98,6 +112,7 @@
 
         #daysToAnniversary {
             text-align: center;
+            color: #007bff;
             font-weight: bold;
             margin-top: 20px;
             font-size: 20px;
@@ -128,6 +143,7 @@
     
     <div class="header" id="usernameHeader"></div>
     <div id="userDetails" class="columns"></div>
+    <button id="wishAnniversaryButton" style="display: none;" onclick="handleWishAnniversary()">Wish Anniversary</button>
     <div id="daysToAnniversary"></div>
     
 </main>
@@ -174,7 +190,9 @@
     }
 
 
-function displayUserDetails(user) {
+let homewikiUrl; // Declare a variable to store the home wiki URL
+
+async function displayUserDetails(user) {
     const userDetailsDiv = document.getElementById('userDetails');
     const usernameHeader = document.getElementById('usernameHeader');
     const daysToAnniversaryDiv = document.getElementById('daysToAnniversary');
@@ -197,7 +215,7 @@ function displayUserDetails(user) {
         leftColumn.classList.add('column');
         leftColumn.innerHTML = `<p><strong>Registration Date:</strong></p>
                                 <p>${formattedDate}</p>
-                                <p><strong>Edit Count:</strong></p>
+                                <p><strong>Total Edit Count:</strong></p>
                                 <p>${user.editcount}</p>`;
 
         if (user.groups.length > 0) {
@@ -206,10 +224,21 @@ function displayUserDetails(user) {
 
         const rightColumn = document.createElement('div');
         rightColumn.classList.add('column');
-        rightColumn.innerHTML = `<p><strong>Home Wiki:</strong></p>
-                                <p>${user.home}</p>
-                                <p><strong>ID:</strong></p>
-                                <p>${user.id}</p>`;
+
+        try {
+            // Fetch homewiki URL asynchronously and store it in the variable
+            homewikiUrl = await fetchHomewikiUrl(user.home, user.merged);
+            rightColumn.innerHTML = `<p><strong>Home Wiki:</strong></p>
+                        <p><a href="${homewikiUrl}" target="_blank">${user.home}</a></p>
+                        <p><strong>ID:</strong></p>
+                        <p>${user.id}</p>`;
+        } catch (error) {
+            console.error("Error fetching homewiki URL:", error);
+            rightColumn.innerHTML = `<p><strong>Home Wiki:</strong></p>
+                                    <p>Not available</p>
+                                    <p><strong>Home Wiki ID:</strong></p>
+                                    <p>${user.id}</p>`;
+        }
 
         if (user.rights.length > 0) {
             rightColumn.innerHTML += `<p><strong>Rights:</strong></p><p> ${user.rights.join(', ')}</p>`;
@@ -226,64 +255,118 @@ function displayUserDetails(user) {
     }
 }
 
+// Function to fetch the homewiki URL asynchronously
+async function fetchHomewikiUrl(homeWiki, mergedEntries) {
+    const matchingEntry = mergedEntries.find(entry => entry.wiki === homeWiki);
+
+    if (matchingEntry) {
+        return matchingEntry.url;
+    } else {
+        return "Not available";
+    }
+}
+
+// Function to handle the click event of the wishAnniversaryButton
+function handleWishAnniversary() {
+    const username = document.getElementById('username').value;
+
+    // Construct the URL using the stored homewikiUrl variable
+    const anniversaryURL = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
+
+    // Open the URL in a new tab
+    window.open(anniversaryURL, '_blank');
+}
+
+// Add event listener to the wishAnniversaryButton
+document.getElementById('wishAnniversaryButton').addEventListener('click', handleWishAnniversary);
+
 function displayDaysToAnniversary(registrationDate, daysToAnniversaryDiv) {
     const anniversaryDate = new Date(registrationDate);
     const today = new Date();
 
+    // Create a copy of anniversaryDate to avoid modifying it directly
+    const anniversaryDateCopy = new Date(anniversaryDate);
+
     // Set the anniversary date to the current year
-    anniversaryDate.setFullYear(today.getFullYear());
+    anniversaryDateCopy.setFullYear(today.getFullYear());
 
     // If today is the anniversary day, set it to next year
-    if (today >= anniversaryDate) {
-        anniversaryDate.setFullYear(today.getFullYear() + 1);
+    if (today >= anniversaryDateCopy) {
+        anniversaryDateCopy.setFullYear(today.getFullYear() + 1);
     }
 
     // Calculate the difference in days between the current date and the anniversary date
-    const daysToAnniversary = Math.ceil((anniversaryDate - today) / (1000 * 60 * 60 * 24));
+    const daysToAnniversary = Math.ceil((anniversaryDateCopy - today) / (1000 * 60 * 60 * 24));
 
     // Display the number of days to the next anniversary
     daysToAnniversaryDiv.innerHTML = `<strong>Days to next Anniversary:</strong> ${daysToAnniversary}`;
 
-    // Check if today is the anniversary day
-    if (daysToAnniversary === 0) {
-        showAnniversaryNotification();
+    // Check if today is the anniversary day or daysToAnniversary is less than 10 or greater than 305
+    if (daysToAnniversary === 0 || (daysToAnniversary < 10 || daysToAnniversary > 305)) {
+        showAnniversaryNotification(daysToAnniversary);
+    }
+
+    // Call showButtons with the calculated number of days
+    showButtons(daysToAnniversary);
+}
+
+function showButtons(daysToAnniversary) {
+    if (daysToAnniversary < 15 || daysToAnniversary > 355) {
+        document.getElementById('wishAnniversaryButton').style.display = 'inline-block';
+    } else {
+        document.getElementById('wishAnniversaryButton').style.display = 'none';
     }
 }
 
-    function showButtons() {
-        // Show the additional buttons
-        document.getElementById('wishAnniversaryButton').style.display = 'inline-block';
+function handleKeyPress(event) {
+    if (event.key === 'Enter') {
+        getUserDetails();
     }
+}
 
-
-    function handleKeyPress(event) {
-        if (event.key === 'Enter') {
-            getUserDetails();
-        }
-    }
-
-    function showAnniversaryNotification() {
-        // Check if the browser supports notifications
-        if ('Notification' in window) {
-            // Check if the user has granted permission for notifications
-            if (Notification.permission === 'granted') {
-                // Create and show the notification
+function showAnniversaryNotification(daysToAnniversary) {
+    // Check if the browser supports notifications
+    if ('Notification' in window) {
+        Notification.requestPermission().then(permission => {
+            if (permission === 'granted') {
                 const username = document.getElementById('username').value;
+                const anniversaryURL = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
+
+                let notificationMessage = '';
+                let notificationUrl = '';
+
+                if (daysToAnniversary === 0) {
+                    notificationMessage = `${username}'s anniversary is today! 🎉`;
+                    notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
+                } else if (daysToAnniversary < 15) {
+                    notificationMessage = `${username}'s anniversary is in ${daysToAnniversary} day${daysToAnniversary === 1 ? '' : 's'}! 🎉`;
+                    notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
+                } else if (daysToAnniversary <= 355) {
+                    notificationMessage = `${username}'s anniversary was within the past 10 days! 🎉`;
+                    notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
+                }
+
                 const notificationOptions = {
-                    body: `${username}'s anniversary is today! 🎉`,
+                    body: notificationMessage,
                 };
 
-                const anniversaryNotification = new Notification('Anniversary Reminder', notificationOptions);
-            } else if (Notification.permission !== 'denied') {
-                // Request permission from the user
-                Notification.requestPermission().then(permission => {
-                    if (permission === 'granted') {
-                        showAnniversaryNotification();
+                const notification = new Notification('Anniversary Reminder', notificationOptions);
+
+                // Add an event listener to handle the click on the notification
+                notification.addEventListener('click', () => {
+                    if (notificationUrl) {
+                        window.open(notificationUrl, '_blank');
                     }
                 });
             }
-        }
+        });
     }
+}
+    
+  setTimeout(function () {
+  document.getElementById('usernameInput').style.display = 'block';
+        }, 2000);
+    
 </script>
 
 </body>
