@@ -310,7 +310,7 @@ function displayDaysToAnniversary(registrationDate, daysToAnniversaryDiv) {
 }
 
 function showButtons(daysToAnniversary) {
-    if (daysToAnniversary < 15 || daysToAnniversary > 355) {
+    if (daysToAnniversary < 11 || daysToAnniversary > 355) {
         document.getElementById('wishAnniversaryButton').style.display = 'inline-block';
     } else {
         document.getElementById('wishAnniversaryButton').style.display = 'none';
@@ -337,10 +337,10 @@ function showAnniversaryNotification(daysToAnniversary) {
                 if (daysToAnniversary === 0) {
                     notificationMessage = `${username}'s anniversary is today! 🎉`;
                     notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
-                } else if (daysToAnniversary < 15) {
+                } else if (daysToAnniversary < 10) {
                     notificationMessage = `${username}'s anniversary is in ${daysToAnniversary} day${daysToAnniversary === 1 ? '' : 's'}! 🎉`;
                     notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
-                } else if (daysToAnniversary <= 355) {
+                } else if (daysToAnniversary >= 355) {
                     notificationMessage = `${username}'s anniversary was within the past 10 days! 🎉`;
                     notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
                 }
