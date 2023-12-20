@@ -300,8 +300,7 @@ function displayDaysToAnniversary(registrationDate, daysToAnniversaryDiv) {
     // Display the number of days to the next anniversary
     daysToAnniversaryDiv.innerHTML = `<strong>Days to next Anniversary:</strong> ${daysToAnniversary}`;
 
-    // Check if today is the anniversary day or daysToAnniversary is less than 10 or greater than 305
-    if (daysToAnniversary === 0 || (daysToAnniversary < 10 || daysToAnniversary > 305)) {
+    if (daysToAnniversary === 0 || (daysToAnniversary < 11 || daysToAnniversary > 355)) {
         showAnniversaryNotification(daysToAnniversary);
     }
 
@@ -337,19 +336,14 @@ function showAnniversaryNotification(daysToAnniversary) {
                 if (daysToAnniversary === 0) {
                     notificationMessage = `${username}'s anniversary is today! 🎉`;
                     notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
-                } else if (daysToAnniversary < 10) {
+                } else if (daysToAnniversary < 11) {
                     notificationMessage = `${username}'s anniversary is in ${daysToAnniversary} day${daysToAnniversary === 1 ? '' : 's'}! 🎉`;
                     notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
-                } else if (daysToAnniversary >= 355) {
+                } else if (daysToAnniversary > 355) {
                     notificationMessage = `${username}'s anniversary was within the past 10 days! 🎉`;
                     notificationUrl = `${homewikiUrl}/w/index.php?title=User_talk:${username}&action=edit&section=new`;
                 }
 
-                const notificationOptions = {
-                    body: notificationMessage,
-                };
-
-                const notification = new Notification('Anniversary Reminder', notificationOptions);
 
                 // Add an event listener to handle the click on the notification
                 notification.addEventListener('click', () => {
