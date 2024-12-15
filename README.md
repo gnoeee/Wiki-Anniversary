@@ -1,3 +1,3 @@
 # Wiki-Anniversary
 
-Wish a Wikimedia user on their Account Creation Anniversary 🎉🥳 
+Wish a Wikimedia user on their first edit Anniversary 🎉🥳 
